@@ -3,14 +3,13 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile.prod
-    ports:
-      - '3000:3000'
+    networks:
+      - traefik
     environment:
       - NODE_ENV=production
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.frontend.rule=Host(`hirsch.ee`) && PathPrefix(`/culturedb`)"
-      - "traefik.http.services.frontend.loadbalancer.server.port=3000"
+      - "traefik.http.routers.frontend.rule=Host(`culturedb.hirsch.ee`)"
 
   postgres:
     image: postgres:13
@@ -20,23 +19,22 @@ services:
       POSTGRES_DB: culturedb
     volumes:
       - pgdata:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
+    networks:
+      - traefik
 
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile.prod
-    ports:
-      - "5050:5050"
+    networks:
+      - traefik
     depends_on:
       - postgres
     env_file:
       - ./backend/.env
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.backend.rule=Host(`hirsch.ee`) && PathPrefix(`/culturedb/api`)"
-      - "traefik.http.services.backend.loadbalancer.server.port=5050"
+      - "traefik.http.routers.backend.rule=Host(`culturedb.hirsch.ee`) && PathPrefix(`/api`)"
 
 volumes:
   pgdata:

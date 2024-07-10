@@ -28,13 +28,15 @@ services:
       dockerfile: Dockerfile.prod
     networks:
       - traefik
-    depends_on:
-      - postgres
     env_file:
       - ./backend/.env
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.backend.rule=Host(`culturedb.hirsch.ee`) && PathPrefix(`/api`)"
+
+networks:
+    traefik:
+        external: true
 
 volumes:
   pgdata:

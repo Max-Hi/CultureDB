@@ -12,7 +12,9 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.frontend.rule=Host(`culturedb.hirsch.ee`)"
-
+    ports:
+      - "80:3000"
+      
   postgres:
     image: postgres:13
     environment:

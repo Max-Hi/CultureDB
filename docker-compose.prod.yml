@@ -35,8 +35,8 @@ services:
       - "traefik.http.routers.backend.rule=Host(`culturedb.hirsch.ee`) && PathPrefix(`/api`)"
 
 networks:
-    traefik:
-        external: true
+  traefik:
+    external: true
 
 volumes:
   pgdata:

@@ -61,7 +61,7 @@ const Page = () => {
       <div>
         <label>
           Where?
-          <input type="text" name="where" value={formData.where} onChange={handleChange} />
+          <input type="text" name="where" value={formData.where} onChange={handleChange} className='text-black'/>
         </label>
         <label>
           When?

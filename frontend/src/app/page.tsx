@@ -38,7 +38,7 @@ const Page = () => {
       body: JSON.stringify(formData)
     });
     const data = await response.json();
-    console.log(data) //setResults(data);
+    setResults(data);
   };
 
   const createCalendarLink = (event: any, type: string) => {

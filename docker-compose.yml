@@ -6,7 +6,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        REACT_APP_API_URL: http://localhost:5050
+        REACT_APP_API_URL: http://localhost:5050/api
     ports:
       - '3000:3000'
     environment:

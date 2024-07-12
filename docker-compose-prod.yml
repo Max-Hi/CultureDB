@@ -1,0 +1,46 @@
+version: '3'
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+      args:
+        REACT_APP_API_URL: /api
+    networks:
+      - traefik
+    environment:
+      - NODE_ENV=production
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`culturedb.hirsch.ee`)"
+
+  postgres:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: culturedb
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - traefik
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+    networks:
+      - traefik
+    env_file:
+      - ./backend/.env
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.backend.rule=Host(`culturedb.hirsch.ee`) && PathPrefix(`/api`)"
+
+networks:
+  traefik:
+    external: true
+
+volumes:
+  pgdata:

@@ -5,6 +5,9 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 import os
 from dotenv import load_dotenv
+from geopy.distance import geodesic
+from geopy.geocoders import Nominatim
+
 
 load_dotenv()  # Load environment variables from .env file
 
@@ -24,6 +27,48 @@ docker-compose run backend flask db upgrade
 flask db downgrade
 '''
 
+# temporary? TODO into databank? List of cultural places
+culture_spaces = {
+        "frankfurter_schauspiel": {
+            "name": "Schauspielhaus Frankfurt",
+            "type": "Theater",
+            "city": "Frankfurt",
+            "price_range": [15,50], #TODO include or get via webcrawler?
+            "webpage": "https://www.schauspielfrankfurt.de",
+            "...": "todo"
+        },    
+        "frankfurter_oper": {
+            "name": "Oper Frankfurt",
+            "type": "Oper",
+            "city": "Frankfurt",
+            "...": "todo"
+        },
+        "heidelberger_theater": {
+            "name": "Theater und Orchester Heidelberg",
+            "type": "Theater",
+            "city": "Heidelberg",
+            "...": "todo"
+        },
+        "karlstorkino_heidelberg": {
+            "name": "Karlstorkino",
+            "type": "Kino",
+            "city": "Heidelberg",
+            "...": "todo"
+        },
+        "schauburg": {
+            "name": "Schauburg",
+            "type": "Kino",
+            "city": "Karlsruhe",
+            "...": "todo"
+        },
+            
+    }
+
+
+
+
+
+
 def get_db_connection():
     conn = psycopg2.connect(
         host="postgres",
@@ -42,6 +87,54 @@ def index():
     conn.close()
     return 'Hello, CultureDB!'
 
+
+################ for filtering by location #################
+def get_coordinates(city_name):
+    geolocator = Nominatim(user_agent="geoapiExercises")
+    location = geolocator.geocode(city_name)
+    return (location.latitude, location.longitude)
+
+def filter_by_proximity(city, max_distance):
+    city_coords = get_coordinates(city)
+    filtered_elements = {}
+    for place, info in culture_spaces.items():
+        element_coords = get_coordinates(info['city'])
+        distance = geodesic(city_coords, element_coords).kilometers
+        if distance < max_distance:
+            filtered_elements[place] = info
+    return filtered_elements
+
+
+
+################ webcrawler #################
+def find_events(event_place_list):
+    results = []
+    for place, info in event_place_list.items():
+        #TODO: call specialized crawler
+        # dummy implementation: 
+        if place == "schauburg":
+            results.append({'location': 'Karlsruhe',
+            'datetime': '2024-07-10T19:30:00',
+            'webpage': 'schauburg.de',
+            'title': 'Kinds of Kindness',
+            'price': '€10'})
+        if place == "karlstorkino_heidelberg":
+            results.append({'location': 'Heidelberg',
+            'datetime': '2024-07-10T19:30:00',
+            'webpage': 'karlstorkino.de',
+            'title': 'Kinds of Kindness',
+            'price': '€5'})
+        if place == "frankfurter_oper":
+            results.append({'location': 'Frankfurt',
+            'datetime': '2024-07-10T19:30:00',
+            'webpage': 'oper-frankfurt.de',
+            'title': 'Tristan und Isolde',
+            'price': '€100'})
+    return results
+    
+
+
+
 @app.route('/api/search', methods=['POST'])
 def search():
     # Extracting the search parameters from the request
@@ -54,29 +147,7 @@ def search():
     title = data.get('title', '')
 
     # For demonstration, returning a list of three elements with default values
-    results = [
-        {
-            'location': 'New York',
-            'datetime': '2024-07-10T19:30:00',
-            'webpage': 'https://example.com/event1',
-            'title': 'Event 1',
-            'price': '$20'
-        },
-        {
-            'location': 'London',
-            'datetime': '2024-07-11T20:00:00',
-            'webpage': 'https://example.com/event2',
-            'title': 'Event 2',
-            'price': '£15'
-        },
-        {
-            'location': 'Berlin',
-            'datetime': '2024-07-12T18:00:00',
-            'webpage': 'https://example.com/event3',
-            'title': 'Event 3',
-            'price': '€10'
-        }
-    ]
+    results = find_events(filter_by_proximity(where, int(when)))
 
     return jsonify(results)
 

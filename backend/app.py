@@ -5,8 +5,14 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 import os
 from dotenv import load_dotenv
+# for geological distances
 from geopy.distance import geodesic
 from geopy.geocoders import Nominatim
+# for typing: 
+from typing import Any, List, Dict, Tuple
+# for webcrawling:
+import requests
+from bs4 import BeautifulSoup
 
 
 load_dotenv()  # Load environment variables from .env file
@@ -89,12 +95,15 @@ def index():
 
 
 ################ for filtering by location #################
-def get_coordinates(city_name):
+def get_coordinates(city_name: str) -> Tuple[float, float]:
     geolocator = Nominatim(user_agent="geoapiExercises")
     location = geolocator.geocode(city_name)
-    return (location.latitude, location.longitude)
+    if location is not None:
+        return (location.latitude, location.longitude)
+    else:
+        raise ValueError("City not found")
 
-def filter_by_proximity(city, max_distance):
+def filter_by_proximity(city: str, max_distance: int) -> List[Any]: #TODO: better return type hint
     city_coords = get_coordinates(city)
     filtered_elements = {}
     for place, info in culture_spaces.items():
@@ -107,7 +116,15 @@ def filter_by_proximity(city, max_distance):
 
 
 ################ webcrawler #################
-def find_events(event_place_list):
+def get_html_content(url: str) -> bytes:
+    response = requests.get(url)
+    return response.content
+
+def parse_events(html_content: bytes, config: Dict[str, Any]) -> List[Any]: #TODO better type hint for return
+    soup = BeautifulSoup(html_content, 'html.parser')
+    return [] # TODO dummy
+
+def find_events(event_place_list: Dict[str,Dict[str, Any]]) -> List[Dict[str, Any]]:
     results = []
     for place, info in event_place_list.items():
         #TODO: call specialized crawler

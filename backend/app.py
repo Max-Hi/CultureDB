@@ -13,9 +13,13 @@ from typing import Any, List, Dict, Tuple
 # for webcrawling:
 import requests
 from bs4 import BeautifulSoup
-
+# for logging
+import logging
 
 load_dotenv()  # Load environment variables from .env file
+
+
+logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
 CORS(app)#, resources={r"/*": {"origins": "http://localhost:3000", "methods": ["GET", "POST", "OPTIONS"], "allow_headers": "*"}}) #TODO: make UI URL variable for production server
@@ -130,9 +134,10 @@ def parse_events(html_content: bytes, config: Dict[str, Any]) -> List[Any]: #TOD
     soup = BeautifulSoup(html_content, 'html.parser')
     events = []
     # Modify this part based on the website's structure
-    print("finding all a types of class LinkBold")
+    app.logger.info("finding all a types of class LinkBold")
     for event in soup.find_all('a', class_='LinkBold'):
-        print(event)
+        app.logger.info(event.get("href"))
+        app.logger.info(get_html_content("https://karlstorkino.de"+event.get("href")))
         # event_name = event.find('h3').text.strip()
         # event_date = event.find('span', class_='date').text.strip()
     #TODO events.append({....})
@@ -181,7 +186,7 @@ def search():
     author = data.get('author', '')
     title = data.get('title', '')
 
-    print("TESTTTTT")
+    app.logger.info("TESTTTTT")
     parse_events(get_html_content("https://www.karlstorkino.de/index.php?RUBRIK=5&Document=13"), dict())
     # For demonstration, returning a list of three elements with default values
     results = []#find_events(culture_spaces)#filter_by_proximity(where, int(when)))

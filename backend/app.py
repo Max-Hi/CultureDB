@@ -59,7 +59,10 @@ culture_spaces = {
             "name": "Karlstorkino",
             "type": "Kino",
             "city": "Heidelberg",
-            "...": "todo"
+            "webpage": "https://www.karlstorkino.de/index.php?RUBRIK=5&Document=13",
+            "config": {
+                "...": "todo",
+            }
         },
         "schauburg": {
             "name": "Schauburg",
@@ -117,19 +120,34 @@ def filter_by_proximity(city: str, max_distance: int) -> List[Any]: #TODO: bette
 
 ################ webcrawler #################
 def get_html_content(url: str) -> bytes:
+    '''returns the html code of the given URL'''
     response = requests.get(url)
     return response.content
 
 def parse_events(html_content: bytes, config: Dict[str, Any]) -> List[Any]: #TODO better type hint for return
+    '''takes the html content from a website and config on how to derive events from that website and creates a list with all events found in that html code'''
+    #TODO: use config to make this work for general websites not just for Karlstorkino
     soup = BeautifulSoup(html_content, 'html.parser')
-    return [] # TODO dummy
+    events = []
+    # Modify this part based on the website's structure
+    print("finding all a types of class LinkBold")
+    for event in soup.find_all('a', class_='LinkBold'):
+        print(event)
+        # event_name = event.find('h3').text.strip()
+        # event_date = event.find('span', class_='date').text.strip()
+    #TODO events.append({....})
+    return events # TODO dummy
 
 def find_events(event_place_list: Dict[str,Dict[str, Any]]) -> List[Dict[str, Any]]:
+    '''finds all events for implemented places that adhere to the given criteria'''
+    # TODO criteria -> filter
     results = []
     for place, info in event_place_list.items():
         #TODO: call specialized crawler
+        if place == "karlstorkino_heidelberg":
+            parse_events(get_html_content(info["webpage"]), info["config"])
         # dummy implementation: 
-        if place == "schauburg":
+        '''if place == "schauburg":
             results.append({'location': 'Karlsruhe',
             'datetime': '2024-07-10T19:30:00',
             'webpage': 'schauburg.de',
@@ -146,12 +164,12 @@ def find_events(event_place_list: Dict[str,Dict[str, Any]]) -> List[Dict[str, An
             'datetime': '2024-07-10T19:30:00',
             'webpage': 'oper-frankfurt.de',
             'title': 'Tristan und Isolde',
-            'price': '€100'})
+            'price': '€100'})'''
     return results
     
 
 
-
+################ API Calls go here #################
 @app.route('/api/search', methods=['POST'])
 def search():
     # Extracting the search parameters from the request
@@ -163,8 +181,10 @@ def search():
     author = data.get('author', '')
     title = data.get('title', '')
 
+    print("TESTTTTT")
+    parse_events(get_html_content("https://www.karlstorkino.de/index.php?RUBRIK=5&Document=13"), dict())
     # For demonstration, returning a list of three elements with default values
-    results = find_events(filter_by_proximity(where, int(when)))
+    results = []#find_events(culture_spaces)#filter_by_proximity(where, int(when)))
 
     return jsonify(results)
 
